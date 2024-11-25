@@ -7,30 +7,30 @@ library(tidyr)
 
 
 ##Open base (decided to use the Stata files instead of the SPSS)
-LAPOP<-read_dta("Grand_Merge_2004-2023_LAPOP_AmericasBarometer_v1.0_w.dta")
+Data<-read_dta("Grand_Merge_2004-2023_LAPOP_AmericasBarometer_v1.0_w.dta")
+
+LAPOP<-Data
 
 ## Countries in the dataset
+
+
 table(LAPOP$pais)
 
 labels <- attr(LAPOP$pais, "labels")
-print(labels)
-
-unique_values <- sort(unique(LAPOP$pais))
-print(unique_values)
 
 #Some countries are not labeled, like Venezuela (16), Guyana (24)
 
-labels <- c(labels, "Venezuela" = 16, "Guyana" = 24)
+if (!"Venezuela" %in% names(labels)) labels["Venezuela"] <- 16
+if (!"Guyana" %in% names(labels)) labels["Guyana"] <- 24
+
+labels <- labels[!is.na(labels)]
+
 labels <- labels[order(labels)]
-labels <- labels[!is.na(names(labels))] ## Remove NA label so the length match
-
-labels <- attr(LAPOP$pais, "labels")
-
-print(length(unique_values))
-print(length(labels))
 
 ## Rename 
-LAPOP$pais <- factor(LAPOP$pais, levels = unique_values, labels = names(labels[match(unique_values, labels)]))
+LAPOP$pais <- factor(LAPOP$pais, levels = unique(LAPOP$pais), labels = names(labels))
+
+print(table(LAPOP$pais))  
 
 
 # Keep only Latin American Countries (non Caribbean and not US or Canada)
@@ -40,9 +40,11 @@ countries_to_keep <- c("México", "Guatemala", "El Salvador", "Honduras", "Nicar
                        "Venezuela", "Argentina", "República Dominicana", "Haití")
 
 LAPOP <- LAPOP %>% filter(pais %in% countries_to_keep)
+table(LAPOP$pais)
 
 LAPOP$pais <- droplevels(LAPOP$pais)
 
+table(LAPOP$pais)
 ## There are a lot of variables that are only NA's, I am droping them for ease of analysis
 
 LAPOP <- LAPOP %>%
